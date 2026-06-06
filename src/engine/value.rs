@@ -1,13 +1,33 @@
 use std::fmt;
 use std::ops::{Add, Div, Mul, Sub};
 
+enum Op {
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Tanh,
+    Noop,
+}
+
 pub struct Value {
     data: f64,
+    parents: Vec<Value>,
+    grad: f64,
+    op: Op,
+    backward: fn(),
 }
 
 impl Value {
     pub fn new(data:f64) -> Self {
-        Self { data }
+        Self { 
+            data,
+            parents: Vec<Value>::new(), 
+            grad: 0.0,  
+            op: Op::Noop, 
+            backward: ||{}
+        }
+        
     }
 }
 
