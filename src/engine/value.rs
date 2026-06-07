@@ -9,7 +9,10 @@ enum Op {
     Sub,
     Mul,
     Div,
+    Pow,
+    Exp,
     Tanh,
+    Relu,
     Noop,
 }
 
@@ -66,6 +69,71 @@ impl Value {
             left.borrow_mut().grad += (1.0 - out_data * out_data) * out_grad;
         });
 
+        out
+    }
+
+    pub fn relu(&self) -> Self {
+        let data = if self.data() < 0.0 { 0.0 } else { self.data() };
+
+        let out = Value(Rc::new(RefCell::new(Val {
+            data,
+            grad: 0.0,
+            _parents: vec![self.0.clone()],
+            _op: Op::Relu,
+            _backward: Rc::new(|| {})
+        })));
+
+        let out_node = out.0.clone();
+        let left = self.0.clone();
+
+        out.0.borrow_mut()._backward = Rc::new(move || {
+            let out_data = out_node.borrow().data;
+            let out_grad = out_node.borrow().grad;
+            let local_grad = if out_data > 0.0 { 1.0 } else { 0.0 };
+            left.borrow_mut().grad += local_grad * out_grad;
+        });
+
+        out
+    }
+
+    pub fn exp(&self) -> Self {
+        let out = Value(Rc::new(RefCell::new(Val {
+            data: self.data().exp(),
+            grad: 0.0,
+            _parents: vec![self.0.clone()],
+            _op: Op::Exp,
+            _backward: Rc::new(|| {})
+        })));
+
+        let out_node = out.0.clone();
+        let left = self.0.clone();
+        
+        out.0.borrow_mut()._backward = Rc::new(move || {
+            let out_grad = out_node.borrow().grad;
+            let out_data = out_node.borrow().data;
+            left.borrow_mut().grad += out_data * out_grad;
+        });
+
+        out
+    }
+
+    pub fn pow(&self, power: f64) -> Self {
+        let out = Value(Rc::new(RefCell::new(Val {
+            data: self.data().powf(power),
+            grad: 0.0,
+            _parents: vec![self.0.clone()],
+            _op: Op::Pow,
+            _backward: Rc::new(|| {})
+        })));
+
+        let out_node = out.0.clone();
+        let left = self.0.clone();
+        
+        out.0.borrow_mut()._backward = Rc::new(move || {
+            let out_grad = out_node.borrow().grad;
+            let local_grad = power * left.borrow().data.powf(power-1.0);
+            left.borrow_mut().grad += local_grad * out_grad;
+        });
         out
     }
 
