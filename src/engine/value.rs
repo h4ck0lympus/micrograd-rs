@@ -157,14 +157,12 @@ impl Value {
     }
 
     pub fn backward(&self) {
-        self.set_grad(1.0);
         let mut topo = Vec::new();
         let mut visited = HashSet::new();
 
         Self::topo_sort(&self.0, &mut visited, &mut topo);
 
         self.set_grad(1.0);
-
         for node in topo.into_iter().rev() {
             let backward = node.borrow()._backward.clone();
             backward();
@@ -196,8 +194,8 @@ impl Add for Value {
 
         out.0.borrow_mut()._backward = Rc::new(move ||{
             let out_grad = out_node.borrow().grad;
-            left.borrow_mut().grad += 1.0 * out_grad;
-            right.borrow_mut().grad += 1.0 * out_grad;
+            left.borrow_mut().grad += out_grad;
+            right.borrow_mut().grad += out_grad;
         });
 
         out
@@ -250,13 +248,27 @@ impl Div for Value {
             panic!("Division by 0 not allowed")
         }
         let data = self.data() / rhs.data();
-        Value(Rc::new(RefCell::new(Val {
+        let out = Value(Rc::new(RefCell::new(Val {
             data,
             grad: 0.0,
             _parents: vec![self.0.clone(), rhs.0.clone()],
             _op: Op::Div,
             _backward: Rc::new(|| {})
-        })))
+        })));
+
+        let left = self.0.clone();
+        let right = rhs.0.clone();
+        let out_node = out.0.clone();
+
+        out.0.borrow_mut()._backward = Rc::new(move || {
+            let out_grad = out_node.borrow().grad;
+            let left_data = left.borrow().data;
+            let right_data = right.borrow().data;
+            left.borrow_mut().grad += out_grad * (1.0 / right_data);
+            right.borrow_mut().grad += out_grad * (-left_data / (right_data * right_data));
+        });
+
+        out
     }
 }
 

@@ -1,22 +1,17 @@
 use micrograd_rs::engine::value::{Value};
 
 fn main() {
-    let a = Value::new(2.0);
-    let b = Value::new(-3.0);
-    let c = Value::new(10.0);
-    let f = Value::new(-2.0);
-    let e = a.clone() * b.clone();
-    let d = e.clone() + c.clone();
-    let l = d.clone() * f.clone();
-    l.set_grad(1.0);
-    l.backward();
-    // d.backward();
-    // f.backward();
-    // c.backward();
-    // e.backward();
-    // a.backward();
-    // b.backward();
-    println!("a = {}, b = {}, c = {}", a, b, c);
-    println!("d = {}, e = {}, f = {}", d, e, f);
-    println!("l = {}", l);
+    let x1 = Value::new(2.0); let x2 = Value::new(0.0);
+    let w1 = Value::new(-3.0); let w2 = Value::new(1.0);
+    let b = Value::new(6.8813735);
+    let x1w1 = x1.clone() * w1.clone(); let x2w2 = x2.clone() * w2.clone();
+    let x1w1x2w2 = x1w1.clone() + x2w2.clone();
+    let n = x1w1x2w2.clone() + b.clone();
+    let o = n.clone().tanh();
+    o.backward();
+    println!("x1 = {}, x2 = {}", x1, x2);
+    println!("w1 = {}, w2 = {}", w1, w2);
+    println!("x1w1 = {}, x2w2 = {}", x1w1, x2w2);
+    println!("x1w1x2w2 = {}", x1w1x2w2);
+    println!("n = {}", n)
 }
