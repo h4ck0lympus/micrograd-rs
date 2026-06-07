@@ -10,12 +10,12 @@ fn main() {
     let l = d.clone() * f.clone();
     l.set_grad(1.0);
     l.backward();
-    d.backward();
-    f.backward();
-    c.backward();
-    e.backward();
-    a.backward();
-    b.backward();
+    // d.backward();
+    // f.backward();
+    // c.backward();
+    // e.backward();
+    // a.backward();
+    // b.backward();
     println!("a = {}, b = {}, c = {}", a, b, c);
     println!("d = {}, e = {}, f = {}", d, e, f);
     println!("l = {}", l);

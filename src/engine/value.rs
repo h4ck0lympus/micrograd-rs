@@ -1,4 +1,5 @@
 use std::cell::RefCell;
+use std::collections::HashSet;
 use std::fmt;
 use std::ops::{Add, Div, Mul, Sub};
 use std::rc::Rc;
@@ -68,8 +69,38 @@ impl Value {
         out
     }
 
+    // topo sort - dfs approach
+    fn topo_sort(
+        node: &Rc<RefCell<Val>>, 
+        visited: &mut HashSet<*const RefCell<Val>>, 
+        topo: &mut Vec<Rc<RefCell<Val>>>
+    ) {
+        let ptr = Rc::as_ptr(node);
+        if visited.contains(&ptr) {
+            return;
+        }
+
+        visited.insert(ptr);
+
+        for parent in node.borrow()._parents.iter() {
+            Self::topo_sort(parent, visited, topo);
+        }
+        topo.push(node.clone());
+    }
+
     pub fn backward(&self) {
-        (self.0.borrow()._backward)();
+        self.set_grad(1.0);
+        let mut topo = Vec::new();
+        let mut visited = HashSet::new();
+
+        Self::topo_sort(&self.0, &mut visited, &mut topo);
+
+        self.set_grad(1.0);
+
+        for node in topo.into_iter().rev() {
+            let backward = node.borrow()._backward.clone();
+            backward();
+        }
     }
 }
 
