@@ -8,4 +8,5 @@ notes:
 - explore L2 regulisation
 - explore max-margin loss
 - add learning rate decay
+- test with pytorch
 
