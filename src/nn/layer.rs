@@ -1,5 +1,5 @@
 use crate::engine::value::Value;
-
+use crate::nn::module::Module;
 use super::neuron::Neuron;
 
 // a layer is collection of neurons 
@@ -22,5 +22,15 @@ impl Layer {
         self.neurons.iter()
             .map(|n| { n.forward(x.clone()) })
             .collect()
+    }
+}
+
+impl Module for Layer {
+    fn parameters(&self) -> Vec<Value> {
+        let mut params = Vec::<Value>::new();
+        for neuron in &self.neurons {
+            params.extend(neuron.parameters());
+        }
+        params
     }
 }

@@ -1,6 +1,6 @@
 use super::layer::Layer;
 use crate::engine::value::Value;
-
+use crate::nn::module::Module;
 // MLP - Multi Layer Perceptron
 pub struct MLP {
     layers: Vec<Layer>,
@@ -25,5 +25,15 @@ impl MLP {
             x = l.forward(x);
         }
         x
+    }
+}
+
+impl Module for MLP {
+    fn parameters(&self) -> Vec<Value> {
+        let mut params = Vec::<Value>::new();
+        for layer in &self.layers {
+            params.extend(layer.parameters());
+        }
+        params
     }
 }

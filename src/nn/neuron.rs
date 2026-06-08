@@ -1,4 +1,5 @@
 use crate::engine::value::Value;
+use crate::nn::module::Module;
 use rand::RngExt;
 // neuron = activation(x1w1 + x2w2 + ... + xNwN + b)
 // x1,x2, ... xN are inputs to neuron
@@ -29,5 +30,14 @@ impl Neuron {
                 acc + w.clone() * x.clone() 
             }); // returns a Value
         data.tanh()
+    }
+}
+
+impl Module for Neuron {
+    fn parameters(&self) -> Vec<Value> {
+       // return vector of weights and bias 
+       let mut params = self.weights.clone();
+       params.push(self.bias.clone());
+       params
     }
 }

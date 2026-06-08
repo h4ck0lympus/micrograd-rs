@@ -39,8 +39,12 @@ impl Value {
         })))
     }
 
-    pub fn data(&self) -> f64 {
+    pub fn get_data(&self) -> f64 {
         self.0.borrow().data
+    }
+
+    pub fn set_data(&self, data: f64) {
+        self.0.borrow_mut().data = data;
     }
 
     pub fn get_grad(&self) -> f64 {
@@ -53,7 +57,7 @@ impl Value {
 
     pub fn tanh(&self) -> Self {
         let out = Value(Rc::new(RefCell::new(Val {
-            data: self.data().tanh(),
+            data: self.get_data().tanh(),
             grad: 0.0,
             _parents: vec![self.0.clone()],
             _op: Op::Tanh,
@@ -73,7 +77,7 @@ impl Value {
     }
 
     pub fn relu(&self) -> Self {
-        let data = if self.data() < 0.0 { 0.0 } else { self.data() };
+        let data = if self.get_data() < 0.0 { 0.0 } else { self.get_data() };
 
         let out = Value(Rc::new(RefCell::new(Val {
             data,
@@ -98,7 +102,7 @@ impl Value {
 
     pub fn exp(&self) -> Self {
         let out = Value(Rc::new(RefCell::new(Val {
-            data: self.data().exp(),
+            data: self.get_data().exp(),
             grad: 0.0,
             _parents: vec![self.0.clone()],
             _op: Op::Exp,
@@ -119,7 +123,7 @@ impl Value {
 
     pub fn pow(&self, power: f64) -> Self {
         let out = Value(Rc::new(RefCell::new(Val {
-            data: self.data().powf(power),
+            data: self.get_data().powf(power),
             grad: 0.0,
             _parents: vec![self.0.clone()],
             _op: Op::Pow,
@@ -172,14 +176,14 @@ impl Value {
 
 impl fmt::Display for Value {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "Value(data={0:.4}, grad={1:.4})", self.data(), self.get_grad())
+        write!(f, "Value(data={0:.8}, grad={1:.8})", self.get_data(), self.get_grad())
     }
 }
 
 impl Add for Value {
     type Output = Value;
     fn add(self, rhs: Self) -> Self::Output {
-        let data = self.data() + rhs.data();
+        let data = self.get_data() + rhs.get_data();
         let out = Value(Rc::new(RefCell::new(Val {
             data,
             grad: 0.0,
@@ -206,7 +210,7 @@ impl Add for Value {
 impl Mul for Value {
     type Output = Value;
     fn mul(self, rhs: Self) -> Self::Output {
-        let data = self.data() * rhs.data();
+        let data = self.get_data() * rhs.get_data();
         let out = Value(Rc::new(RefCell::new(Val {
             data,
             grad: 0.0,
@@ -244,10 +248,10 @@ impl Sub for Value {
 impl Div for Value {
     type Output = Value;
     fn div(self, rhs: Self) -> Self::Output {
-        if rhs.data() == 0.0 {
+        if rhs.get_data() == 0.0 {
             panic!("Division by 0 not allowed")
         }
-        let data = self.data() / rhs.data();
+        let data = self.get_data() / rhs.get_data();
         let out = Value(Rc::new(RefCell::new(Val {
             data,
             grad: 0.0,
